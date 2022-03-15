@@ -19,6 +19,7 @@ var webcamRef;
 var canvasRef;
 var hand;
 var arr = ["rock", "paper", "scissor"];
+var asciiArr = [ "fa-hand-back-fist","fa-hand" , "fa-hand-scissors" ]
 
 const runHandpose = async () => {
   const net = await handpose.load();
@@ -36,6 +37,7 @@ class App extends React.Component {
   you = 0;
   interval = 0;
   interval321 = 0 ;
+
   constructor(props) {
     
     super(props);
@@ -47,11 +49,14 @@ class App extends React.Component {
       stateNo:0,
       boolValue:true,
       currentValue:null,
-      computer :"rock"
+      computer :"rock",
+      logArr :[],
+      logState:0
     }
     this.outerFuncLoop = this.outerFuncLoop.bind(this);
     this.innerFunc = this.innerFunc.bind(this);
     this.display321 = this.display321.bind(this);
+    this.listLog = this.listLog.bind(this)
     webcamRef = React.createRef(null);
     canvasRef = React.createRef(null)
     runHandpose();
@@ -92,10 +97,14 @@ class App extends React.Component {
             <div className="p-4 col-3 d-flex flex-column justify-center flex-wrap">
               <span className="text-secondary col-12">Draw</span>
               <span className="col-12">{this.state.draw}</span>
-              <span className="d-block my-md-3 my-lg-5" style={{ fontSize: 20 }}>
+              <span className="d-block my-md-2 " style={{ fontSize: 20 }}>
               {fun1(this.state.stateNo)}
             </span>
+            <span className="log">
             
+              {this.listLog(this.state.logArr)}
+             
+        </span>
             <button
               name="formBtn"
               id="playbtn"
@@ -116,7 +125,7 @@ class App extends React.Component {
             <div className="p-4 col-4 d-flex justify-center flex-column"style={{boxShadow:"0px 5px 30px lightgray",borderRadius:30}}>
               <span className="text-secondary col-12">SCORE</span>
               <span className="col-12">{this.state.botScore}</span>
-              <img src={require("./"+Number(arr.indexOf(this.state.computer)*2+1)+".png")}/> 
+              <img src={require("./"+Number(arr.indexOf(this.state.computer)*2+1)+".png")} style={{animation:"rotation 1s linear 0s infinite alternate"}}/> 
               <div className="mt-5">{this.state.computer.toUpperCase()}</div>
             </div>
           </div>
@@ -137,13 +146,18 @@ class App extends React.Component {
     if(clearInterval(this.interval321) != undefined){
       clearInterval(this.interval321)
     }
+    console.log(this.state.logArr,"array")
+    var array2 = this.state.logArr 
     if (r == -1) {
-      this.setState({draw:this.state.draw+1,stateNo:7})
-      ;
+      array2[this.state.logArr.length] = [you,"draw",this.state.computer]
+      this.setState({draw:this.state.draw+1,stateNo:7,logArr:array2 })
+      
     } else if (r == 0) {
-      this.setState({botScore:this.state.botScore+1,stateNo:6})
+      array2[this.state.logArr.length] = [you,"lose",this.state.computer]
+      this.setState({botScore:this.state.botScore+1,stateNo:6,logArr:array2 })
     } else if (r == 1) {
-      this.setState({userScore:this.state.userScore +1,stateNo:5});
+      array2[this.state.logArr.length] = [you,"won",this.state.computer]
+      this.setState({userScore:this.state.userScore +1,stateNo:5,logArr:array2});
     }
   }
   com() {
@@ -221,6 +235,26 @@ stop() {
   }
     this.setState({boolValue:true,stateNo:0})
   }
+mouseEnter (a){
+  this.setState({logState:a})
+}
+  mouseLeave(a) {
+    this.setState({logState:0})
+  }
+  listLog(logAr) {
+     this.state.logArr.reverse()
+   return (
+    <ul>
+    {
+      this.state.logArr.map((item,k) =>{
+        var ky = k + 1;
+        return (<li key={ky} onMouseEnter={() => this.mouseEnter(ky)} onMouseLeave={()=>this.mouseLeave(ky)}><span  className={`bullet ${(this.state.logState == (ky-1)|| this.state.logState ==(ky+1) ) ? "sty1":""}`}>{this.state.logArr.length+1 -ky}</span><div className={`txt-scroll ${(this.state.logState == (ky - 1) || this.state.logState == (ky+1))?"sty2":""}`} ><i className={`fa-solid `+ asciiArr[arr.indexOf(item[0])] }></i>&nbsp;&nbsp;&nbsp;&nbsp; {item[1]} &nbsp;&nbsp;&nbsp;&nbsp;<i className={`fa-solid ` +asciiArr[arr.indexOf(item[2])] }></i></div></li>)
+  }
+    )     
+  }
+  
+  </ul> )
+}
 }
 
 const detect = async (net) => {
@@ -252,45 +286,46 @@ const detect = async (net) => {
     drawHand(hand, ctx);
     pred(hand, ctx);
   }
+
 };
 function fun1 (key) {
   switch (key) {
     case 0:
       return (
-        <div></div>
+        <div className="msg"></div>
       )
     case 1:
       return (
-        <div className ="no">3</div>
+        <div className ="msg no">3</div>
       )
     case 2 :
       return (
-        <div className ="no">2</div>
+        <div className ="msg no">2</div>
 
       )
     case 3 :
       return (
-        <div className ="no">1</div>
+        <div className ="msg no">1</div>
 
       )
     case 4 :
       return (
-        <div className ="fail">Show Your Hand</div>
+        <div className ="msg fail">Show Your Hand</div>
 
       )
     case 5 :
       return (
-        <div className ="suc">You Won</div>
+        <div className ="msg suc">You Won</div>
 
       )
     case 6 :
       return (
-        <div className ="fail">You Loose</div>
+        <div className ="msg fail">You Loose</div>
   
       )
     case 7 :
       return (
-        <div className ="draw">Draw</div>
+        <div className ="msg draw">Draw</div>
     
       )
     default:
